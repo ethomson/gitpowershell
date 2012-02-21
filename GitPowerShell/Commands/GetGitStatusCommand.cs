@@ -12,10 +12,18 @@ using GitPowerShell.Parameters;
 namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Get, "GitStatus")]
+    [OutputType(typeof(GitFileStatus))]
     public class GetGitStatusCommand : PSCmdlet
     {
-        [Parameter(Mandatory = false, ValueFromPipeline = true, Position = 0, HelpMessage = "The repository to query status for."), RepositoryTransformation]
+        [Parameter(Mandatory = false, ValueFromPipeline = false, ValueFromPipelineByPropertyName = true, ValueFromRemainingArguments = false, HelpMessage = "The repository to query status for."), RepositoryTransformation]
         public RepositoryParameter Repository
+        {
+            get;
+            set;
+        }
+
+        [Parameter(Mandatory = false, ValueFromPipeline = true, ValueFromRemainingArguments = true, Position = 0), PathArrayTransformation(Recursive = true)]
+        public String[] Path
         {
             get;
             set;
@@ -47,8 +55,23 @@ namespace GitPowerShell.Commands
                     shouldDispose = Repository.ShouldDispose;
                 }
 
+                if(Path != null)
+                {
+                    foreach (String path in Path)
+                    {
+                        FileStatus state = repository.Index.RetrieveStatus(path);
+                        WriteObject(new GitFileStatus(path, state));
+                    }
+                }
+                else
+                {
+                    RepositoryStatus status = repository.Index.RetrieveStatus();
 
-                WriteObject(repository.Index.RetrieveStatus());
+                    foreach (StatusEntry entry in status)
+                    {
+                        WriteObject(new GitFileStatus(System.IO.Path.Combine(repository.Info.WorkingDirectory, entry.FilePath), entry.State));
+                    }
+                }
             }
             finally
             {
@@ -56,6 +79,34 @@ namespace GitPowerShell.Commands
                 {
                     repository.Dispose();
                 }
+            }
+        }
+    }
+
+    public class GitFileStatus
+    {
+        private readonly String filePath;
+        private readonly FileStatus state;
+
+        public GitFileStatus(String filePath, FileStatus state)
+        {
+            this.filePath = filePath;
+            this.state = state;
+        }
+
+        public String FilePath
+        {
+            get
+            {
+                return filePath;
+            }
+        }
+
+        public FileStatus State
+        {
+            get
+            {
+                return state;
             }
         }
     }

@@ -22,11 +22,53 @@ namespace GitPowerShell.Commands
             set;
         }
 
-        [Parameter(Mandatory = true, Position = 0, ValueFromPipeline = true, ValueFromRemainingArguments = true), AbsolutePathTransformation]
+        [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true, ValueFromRemainingArguments = true), PathArrayTransformation(Recursive = true, MustExist = true)]
         public String[] Path
         {
             get;
             set;
+        }
+
+        [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true, ValueFromRemainingArguments = true), PathArrayTransformation(Recursive = true, Literal = true, MustExist = true)]
+        public String[] LiteralPath
+        {
+            get;
+            set;
+        }
+
+        [Parameter(Mandatory = false)]
+        public SwitchParameter All
+        {
+            get;
+            set;
+        }
+
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Update
+        {
+            get;
+            set;
+        }
+
+        private String[] GetPaths()
+        {
+            if (Path != null && LiteralPath != null)
+            {
+                String[] allPaths = new String[Path.Length + LiteralPath.Length];
+                Array.Copy(Path, 0, allPaths, 0, Path.Length);
+                Array.Copy(LiteralPath, 0, allPaths, Path.Length, LiteralPath.Length);
+                return allPaths;
+            }
+            else if (Path != null)
+            {
+                return Path;
+            }
+            else if (LiteralPath != null)
+            {
+                return LiteralPath;
+            }
+
+            return null;
         }
 
         protected override void ProcessRecord()
@@ -34,30 +76,15 @@ namespace GitPowerShell.Commands
             Repository repository = null;
             bool shouldDispose = true;
 
-            List<String> filesToAdd = new List<String>();
+            String[] addPaths = GetPaths();
 
-            foreach (String file in Path)
+            if (addPaths == null && ! All && ! Update)
             {
-                if (Directory.Exists(file))
-                {
-                    IEnumerable<String> expandedPaths = FileSystemUtil.GetFilesRecursive(file);
-
-                    foreach (String expandedPath in expandedPaths)
-                    {
-                        WriteVerbose(String.Format("Adding {0} to staging.", expandedPath));
-                    }
-
-                    filesToAdd.AddRange(expandedPaths);
-                }
-                else if (System.IO.File.Exists(file))
-                {
-                    WriteVerbose(String.Format("Adding {0} to staging.", file));
-                    filesToAdd.Add(file);
-                }
-                else
-                {
-                    throw new FileNotFoundException(String.Format("The path {0} was not found", file));
-                }
+                throw new ArgumentException("You must specify paths to add using -Path or -LiteralPath, or use the -All or -Update parameter");
+            }
+            else if(All && Update)
+            {
+                throw new ArgumentException("You cannot specify both the -All and -Update parameters");
             }
 
             try
@@ -81,7 +108,29 @@ namespace GitPowerShell.Commands
                     shouldDispose = Repository.ShouldDispose;
                 }
 
-                repository.Index.Stage(filesToAdd);
+                if(addPaths != null)
+                {
+                    foreach(String path in addPaths)
+                    {
+                        WriteVerbose(String.Format("Adding {0}", path));
+                        repository.Index.Stage(addPaths);
+                    }
+                }
+                else
+                {
+                    foreach (StatusEntry statusEntry in repository.Index.RetrieveStatus())
+                    {
+                        if(
+                            (statusEntry.State == FileStatus.Untracked && All) ||
+                            (statusEntry.State == FileStatus.Missing) ||
+                            (statusEntry.State == FileStatus.Modified)
+                          )
+                        {
+                            WriteVerbose(String.Format("Adding {0}", statusEntry.FilePath));
+                            repository.Index.Stage(statusEntry.FilePath);
+                        }
+                    }
+                }
             }
             finally
             {

@@ -14,9 +14,10 @@ using LibGit2Sharp;
 namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Get, "GitRepository")]
+    [OutputType(typeof(Repository))]
     public class GetGitRepositoryCommand : PSCmdlet
     {
-        [Parameter(Mandatory = false, ValueFromPipeline = true, Position = 0, HelpMessage = "The starting directory to search for the git repository in."), AbsolutePathTransformation]
+        [Parameter(Mandatory = false, ValueFromPipeline = true, Position = 0, HelpMessage = "The starting directory to search for the git repository in."), PathTransformation]
         public String Directory
         {
             get;

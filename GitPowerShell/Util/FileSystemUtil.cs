@@ -13,15 +13,26 @@ namespace GitPowerShell.Util
 
             foreach (String file in Directory.GetFiles(directory))
             {
-                files.Add(file);
+                if (!IsHidden(file))
+                {
+                    files.Add(file);
+                }
             }
 
             foreach (String subdirectory in Directory.GetDirectories(directory))
             {
-                files.AddRange(GetFilesRecursive(subdirectory));
+                if (!IsHidden(subdirectory))
+                {
+                    files.AddRange(GetFilesRecursive(subdirectory));
+                }
             }
 
             return files;
+        }
+
+        private static bool IsHidden(String filename)
+        {
+            return Path.GetFileName(filename).StartsWith(".");
         }
     }
 }

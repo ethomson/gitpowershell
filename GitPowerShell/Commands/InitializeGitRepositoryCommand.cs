@@ -12,10 +12,11 @@ using GitPowerShell.Parameters;
 namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsData.Initialize, "GitRepository")]
+    [OutputType(typeof(Repository))]
     public class InitializeGitRepositoryCommand : PSCmdlet
     {
-        [Parameter(Mandatory=false, ValueFromPipeline=true, Position=0, HelpMessage="The directory that will contain the git repository.  It will be created if it does not exist."), DirectoryInfoTransformation]
-        public DirectoryInfo Directory
+        [Parameter(Mandatory=false, ValueFromPipeline=true, Position=0, HelpMessage="The directory that will contain the git repository.  It will be created if it does not exist."), PathTransformation]
+        public String Directory
         {
             get;
             set;
@@ -39,7 +40,7 @@ namespace GitPowerShell.Commands
         {
             /* Get an absolute directory based on the powershell current working directory. */
             String repositoryDirectory = Directory != null ?
-                Directory.FullName :
+                Directory :
                 SessionState.Path.CurrentFileSystemLocation.Path;
 
             Repository repository = null;
