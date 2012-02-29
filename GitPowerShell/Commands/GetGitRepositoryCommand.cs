@@ -9,8 +9,6 @@ using LibGit2Sharp;
 
 using GitPowerShell.Parameters;
 
-using LibGit2Sharp;
-
 namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Get, "GitRepository")]

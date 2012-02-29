@@ -8,11 +8,13 @@ using Microsoft.PowerShell.Commands;
 using LibGit2Sharp;
 
 using GitPowerShell.Parameters;
+using GitPowerShell.Output;
+using GitPowerShell.Util;
 
 namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Get, "GitStatus")]
-    [OutputType(typeof(GitFileStatus))]
+    [OutputType(typeof(GitFileSystemStatusEntry))]
     public class GetGitStatusCommand : PSCmdlet
     {
         [Parameter(Mandatory = false, ValueFromPipeline = false, ValueFromPipelineByPropertyName = true, ValueFromRemainingArguments = false, HelpMessage = "The repository to query status for."), RepositoryTransformation]
@@ -22,8 +24,15 @@ namespace GitPowerShell.Commands
             set;
         }
 
-        [Parameter(Mandatory = false, ValueFromPipeline = true, ValueFromRemainingArguments = true, Position = 0), PathArrayTransformation(Recursive = true)]
+        [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true, ValueFromRemainingArguments = true), PathArrayTransformation(Recursive = true, MustExist = false)]
         public String[] Path
+        {
+            get;
+            set;
+        }
+
+        [Parameter(Mandatory = false, ValueFromPipelineByPropertyName = true), PathArrayTransformation(Recursive = true, Literal = true, MustExist = false)]
+        public String[] LiteralPath
         {
             get;
             set;
@@ -55,12 +64,14 @@ namespace GitPowerShell.Commands
                     shouldDispose = Repository.ShouldDispose;
                 }
 
-                if(Path != null)
+                String[] paths = ArrayUtil.Combine(Path, LiteralPath);
+
+                if (paths != null)
                 {
-                    foreach (String path in Path)
+                    foreach (String path in paths)
                     {
                         FileStatus state = repository.Index.RetrieveStatus(path);
-                        WriteObject(new GitFileStatus(path, state));
+                        WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, state));
                     }
                 }
                 else
@@ -69,7 +80,7 @@ namespace GitPowerShell.Commands
 
                     foreach (StatusEntry entry in status)
                     {
-                        WriteObject(new GitFileStatus(System.IO.Path.Combine(repository.Info.WorkingDirectory, entry.FilePath), entry.State));
+                        WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, entry.FilePath, entry.State));
                     }
                 }
             }
@@ -79,34 +90,6 @@ namespace GitPowerShell.Commands
                 {
                     repository.Dispose();
                 }
-            }
-        }
-    }
-
-    public class GitFileStatus
-    {
-        private readonly String filePath;
-        private readonly FileStatus state;
-
-        public GitFileStatus(String filePath, FileStatus state)
-        {
-            this.filePath = filePath;
-            this.state = state;
-        }
-
-        public String FilePath
-        {
-            get
-            {
-                return filePath;
-            }
-        }
-
-        public FileStatus State
-        {
-            get
-            {
-                return state;
             }
         }
     }

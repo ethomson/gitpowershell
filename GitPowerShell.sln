@@ -5,7 +5,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitPowerShell", "GitPowerSh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibGit2Sharp", "..\LibGit2Sharp\LibGit2Sharp\LibGit2Sharp.csproj", "{EE6ED99F-CB12-4683-B055-D28FC7357A34}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitPowerShellTests", "GitPowerShellTests\GitPowerShellTests.csproj", "{18FA286C-1C57-44F7-A004-938DAD099880}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E2839F0-A176-4A6F-BFA0-D7FE3BE95ED8}"
+	ProjectSection(SolutionItems) = preProject
+		GitPowerShell.vsmdi = GitPowerShell.vsmdi
+		Local.testsettings = Local.testsettings
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = GitPowerShell.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -19,6 +31,10 @@ Global
 		{EE6ED99F-CB12-4683-B055-D28FC7357A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE6ED99F-CB12-4683-B055-D28FC7357A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE6ED99F-CB12-4683-B055-D28FC7357A34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18FA286C-1C57-44F7-A004-938DAD099880}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18FA286C-1C57-44F7-A004-938DAD099880}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18FA286C-1C57-44F7-A004-938DAD099880}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18FA286C-1C57-44F7-A004-938DAD099880}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

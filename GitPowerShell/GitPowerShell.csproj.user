@@ -5,5 +5,10 @@
     <StartProgram>c:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe</StartProgram>
     <StartArguments>
     </StartArguments>
+    <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <StartAction>Program</StartAction>
+    <StartProgram>c:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe</StartProgram>
   </PropertyGroup>
 </Project>

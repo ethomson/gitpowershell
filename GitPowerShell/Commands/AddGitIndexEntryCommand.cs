@@ -8,11 +8,13 @@ using Microsoft.PowerShell.Commands;
 using LibGit2Sharp;
 
 using GitPowerShell.Parameters;
+using GitPowerShell.Output;
 using GitPowerShell.Util;
 
 namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Add, "GitIndexEntry")]
+    [OutputType(typeof(GitFileSystemStatusEntry))]
     public class AddGitIndexEntryCommand : PSCmdlet
     {
         [Parameter(Mandatory = false, HelpMessage = "The repository to query status for."), RepositoryTransformation]
@@ -29,7 +31,7 @@ namespace GitPowerShell.Commands
             set;
         }
 
-        [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true, ValueFromRemainingArguments = true), PathArrayTransformation(Recursive = true, Literal = true, MustExist = true)]
+        [Parameter(Mandatory = false, ValueFromPipelineByPropertyName = true), PathArrayTransformation(Recursive = true, Literal = true, MustExist = true)]
         public String[] LiteralPath
         {
             get;
@@ -50,33 +52,12 @@ namespace GitPowerShell.Commands
             set;
         }
 
-        private String[] GetPaths()
-        {
-            if (Path != null && LiteralPath != null)
-            {
-                String[] allPaths = new String[Path.Length + LiteralPath.Length];
-                Array.Copy(Path, 0, allPaths, 0, Path.Length);
-                Array.Copy(LiteralPath, 0, allPaths, Path.Length, LiteralPath.Length);
-                return allPaths;
-            }
-            else if (Path != null)
-            {
-                return Path;
-            }
-            else if (LiteralPath != null)
-            {
-                return LiteralPath;
-            }
-
-            return null;
-        }
-
         protected override void ProcessRecord()
         {
             Repository repository = null;
             bool shouldDispose = true;
 
-            String[] addPaths = GetPaths();
+            String[] addPaths = ArrayUtil.Combine(Path, LiteralPath);
 
             if (addPaths == null && ! All && ! Update)
             {
@@ -112,8 +93,12 @@ namespace GitPowerShell.Commands
                 {
                     foreach(String path in addPaths)
                     {
-                        WriteVerbose(String.Format("Adding {0}", path));
-                        repository.Index.Stage(addPaths);
+                        String repoRelativePath = FileSystemUtil.MakeRelative(path, repository.Info.WorkingDirectory);
+
+                        WriteVerbose(String.Format("Adding {0}", repoRelativePath));
+                        repository.Index.Stage(path);
+
+                        WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, repository.Index.RetrieveStatus(path)));
                     }
                 }
                 else
@@ -126,8 +111,12 @@ namespace GitPowerShell.Commands
                             (statusEntry.State == FileStatus.Modified)
                           )
                         {
+                            String repoRelativePath = FileSystemUtil.MakeRelative(statusEntry.FilePath, repository.Info.WorkingDirectory);
+
                             WriteVerbose(String.Format("Adding {0}", statusEntry.FilePath));
                             repository.Index.Stage(statusEntry.FilePath);
+
+                            WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, statusEntry.FilePath, repository.Index.RetrieveStatus(statusEntry.FilePath)));
                         }
                     }
                 }
