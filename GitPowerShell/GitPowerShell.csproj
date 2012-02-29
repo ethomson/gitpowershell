@@ -12,7 +12,8 @@
     <AssemblyName>GitPowerShell</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,6 +35,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -42,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\AddGitIndexEntryCommand.cs" />
+    <Compile Include="Commands\CommitGitRepositoryCommand.cs" />
     <Compile Include="Commands\GetGitRepositoryCommand.cs" />
     <Compile Include="Commands\GetGitStatusCommand.cs" />
     <Compile Include="Commands\InitializeGitRepositoryCommand.cs" />
