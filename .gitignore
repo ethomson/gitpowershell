@@ -1,0 +1,7 @@
+# Ignore build output
+GitPowerShell/bin/
+GitPowerShell/obj/
+GitPowerShellTests/bin/
+GitPowerShellTests/obj/
+# Ignore test output
+TestResults/

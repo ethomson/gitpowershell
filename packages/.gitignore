@@ -1,0 +1,6 @@
+# Ignore all built packages
+*
+# But include the repositories.config
+!repositories.config
+# And manage the gitignore file
+!.gitignore
