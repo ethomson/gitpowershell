@@ -15,7 +15,7 @@ namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Get, "GitStatus")]
     [OutputType(typeof(GitFileSystemStatusEntry))]
-    public class GetGitStatusCommand : PSCmdlet
+    public class GetGitStatusCommand : GitCmdlet
     {
         [Parameter(Mandatory = false, ValueFromPipeline = false, ValueFromPipelineByPropertyName = true, ValueFromRemainingArguments = false, HelpMessage = "The repository to query status for."), RepositoryTransformation]
         public RepositoryParameter Repository
@@ -40,55 +40,26 @@ namespace GitPowerShell.Commands
 
         protected override void ProcessRecord()
         {
-            Repository repository = null;
-            bool shouldDispose = true;
-
-            try
+            using (RepositoryParameter container = UseOrDiscoverRepository(Repository))
             {
-                RepositoryParameter repositoryParam = Repository;
-
-                if (repositoryParam == null)
-                {
-                    String repositoryPath = LibGit2Sharp.Repository.Discover(SessionState.Path.CurrentFileSystemLocation.Path);
-
-                    if (repositoryPath == null)
-                    {
-                        throw new FileNotFoundException("Could not locate git repository based on the current file system location.  Specify -Repository to indicate the repository location.");
-                    }
-
-                    repository = new Repository(repositoryPath);
-                }
-                else
-                {
-                    repository = Repository.Repository;
-                    shouldDispose = Repository.ShouldDispose;
-                }
-
                 String[] paths = ArrayUtil.Combine(Path, LiteralPath);
 
                 if (paths != null)
                 {
                     foreach (String path in paths)
                     {
-                        FileStatus state = repository.Index.RetrieveStatus(path);
-                        WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, state));
+                        FileStatus state = container.Repository.Index.RetrieveStatus(path);
+                        WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, state));
                     }
                 }
                 else
                 {
-                    RepositoryStatus status = repository.Index.RetrieveStatus();
+                    RepositoryStatus status = container.Repository.Index.RetrieveStatus();
 
                     foreach (StatusEntry entry in status)
                     {
-                        WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, entry.FilePath, entry.State));
+                        WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, entry.FilePath, entry.State));
                     }
-                }
-            }
-            finally
-            {
-                if (repository != null && shouldDispose)
-                {
-                    repository.Dispose();
                 }
             }
         }

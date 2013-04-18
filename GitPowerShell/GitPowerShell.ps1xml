@@ -2,6 +2,29 @@
 <Configuration>
   <ViewDefinitions>
     <View>
+      <Name>Branch</Name>
+      <ViewSelectedBy>
+        <TypeName>LibGit2Sharp.Branch</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Branch</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>CanonicalName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    
+    <View>
       <Name>GitFilesystemStatusEntry</Name>
       <ViewSelectedBy>
         <TypeName>GitPowerShell.Output.GitFilesystemStatusEntry</TypeName>

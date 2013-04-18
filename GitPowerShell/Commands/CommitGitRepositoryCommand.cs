@@ -19,7 +19,7 @@ namespace GitPowerShell.Commands
 {
     [Cmdlet("Commit", "GitRepository")]
     [OutputType(typeof(Commit))]
-    public class CommitGitRepositoryCommand : PSCmdlet
+    public class CommitGitRepositoryCommand : GitCmdlet
     {
         private UserPrincipal currentUserPrincipal;
         private String currentUserDisplayName;
@@ -69,31 +69,8 @@ namespace GitPowerShell.Commands
 
         protected override void ProcessRecord()
         {
-            Repository repository = null;
-            bool shouldDispose = true;
-
-            try
+            using (RepositoryParameter container = UseOrDiscoverRepository(Repository))
             {
-                RepositoryParameter repositoryParam = Repository;
-
-                if (repositoryParam == null)
-                {
-                    String repositoryPath = LibGit2Sharp.Repository.Discover(SessionState.Path.CurrentFileSystemLocation.Path);
-
-                    if (repositoryPath == null)
-                    {
-                        throw new FileNotFoundException("Could not locate git repository based on the current file system location.  Specify -Repository to indicate the repository location.");
-                    }
-
-                    repository = new Repository(repositoryPath);
-                    shouldDispose = PassThru;
-                }
-                else
-                {
-                    repository = Repository.Repository;
-                    shouldDispose = Repository.ShouldDispose || PassThru;
-                }
-
                 LibGit2Sharp.Signature author;
                 LibGit2Sharp.Signature committer;
 
@@ -106,23 +83,16 @@ namespace GitPowerShell.Commands
                 }
                 else
                 {
-                    author = GetDefaultSignature(repository, authoredTime);
+                    author = GetDefaultSignature(container.Repository, authoredTime);
                 }
 
-                committer = GetDefaultSignature(repository, commitTime);
+                committer = GetDefaultSignature(container.Repository, commitTime);
 
-                Commit commit = repository.Commit(Message, author, committer, Amend);
+                Commit commit = container.Repository.Commit(Message, author, committer, Amend);
 
                 if (PassThru)
                 {
                     WriteObject(commit);
-                }
-            }
-            finally
-            {
-                if (repository != null && shouldDispose)
-                {
-                    repository.Dispose();
                 }
             }
         }
@@ -207,15 +177,25 @@ namespace GitPowerShell.Commands
         {
             Debug.Assert(repository != null, "repository != null");
 
-            String name = repository.Config.Get<String>("user.name", null);
-            String email = repository.Config.Get<String>("user.email", null);
+            string name, email;
 
-            if (name == null)
+            ConfigurationEntry<string> nameEntry = repository.Config.Get<string>("user.name");
+            ConfigurationEntry<string> emailEntry = repository.Config.Get<string>("user.email");
+
+            if (nameEntry != null && nameEntry.Value != null)
+            {
+                name = nameEntry.Value;
+            }
+            else
             {
                 name = CurrentUserDisplayName;
             }
 
-            if (email == null)
+            if (emailEntry != null && emailEntry.Value != null)
+            {
+                email = emailEntry.Value;
+            }
+            else
             {
                 email = CurrentUserEmail;
             }

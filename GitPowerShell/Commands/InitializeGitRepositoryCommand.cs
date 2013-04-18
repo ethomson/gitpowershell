@@ -39,7 +39,7 @@ namespace GitPowerShell.Commands
         protected override void ProcessRecord()
         {
             /* Get an absolute directory based on the powershell current working directory. */
-            String repositoryDirectory = Directory != null ?
+            String repositoryPath = Directory != null ?
                 Directory :
                 SessionState.Path.CurrentFileSystemLocation.Path;
 
@@ -47,7 +47,7 @@ namespace GitPowerShell.Commands
 
             try
             {
-                repository = Repository.Init(repositoryDirectory, Bare);
+                repository = Repository.Init(repositoryPath, Bare);
 
                 WriteVerbose(String.Format("Initialized empty Git repository in {0}", repository.Info.Path));
             }

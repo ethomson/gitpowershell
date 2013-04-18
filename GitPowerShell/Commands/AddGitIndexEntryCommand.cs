@@ -15,7 +15,7 @@ namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Add, "GitIndexEntry")]
     [OutputType(typeof(GitFileSystemStatusEntry))]
-    public class AddGitIndexEntryCommand : PSCmdlet
+    public class AddGitIndexEntryCommand : GitCmdlet
     {
         [Parameter(Mandatory = false, HelpMessage = "The repository to query status for."), RepositoryTransformation]
         public RepositoryParameter Repository
@@ -54,9 +54,6 @@ namespace GitPowerShell.Commands
 
         protected override void ProcessRecord()
         {
-            Repository repository = null;
-            bool shouldDispose = true;
-
             String[] addPaths = ArrayUtil.Combine(Path, LiteralPath);
 
             if (addPaths == null && ! All && ! Update)
@@ -68,64 +65,38 @@ namespace GitPowerShell.Commands
                 throw new ArgumentException("You cannot specify both the -All and -Update parameters");
             }
 
-            try
+            using (RepositoryParameter container = UseOrDiscoverRepository(Repository))
             {
-                RepositoryParameter repositoryParam = Repository;
-
-                if (repositoryParam == null)
+                if (addPaths != null)
                 {
-                    String repositoryPath = LibGit2Sharp.Repository.Discover(SessionState.Path.CurrentFileSystemLocation.Path);
-
-                    if (repositoryPath == null)
+                    foreach (String path in addPaths)
                     {
-                        throw new FileNotFoundException("Could not locate git repository based on the current file system location.  Specify -Repository to indicate the repository location.");
-                    }
-
-                    repository = new Repository(repositoryPath);
-                }
-                else
-                {
-                    repository = Repository.Repository;
-                    shouldDispose = Repository.ShouldDispose;
-                }
-
-                if(addPaths != null)
-                {
-                    foreach(String path in addPaths)
-                    {
-                        String repoRelativePath = FileSystemUtil.MakeRelative(path, repository.Info.WorkingDirectory);
+                        String repoRelativePath = FileSystemUtil.MakeRelative(path, container.Repository.Info.WorkingDirectory);
 
                         WriteVerbose(String.Format("Adding {0}", repoRelativePath));
-                        repository.Index.Stage(path);
+                        container.Repository.Index.Stage(path);
 
-                        WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, repository.Index.RetrieveStatus(path)));
+                        WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.Index.RetrieveStatus(path)));
                     }
                 }
                 else
                 {
-                    foreach (StatusEntry statusEntry in repository.Index.RetrieveStatus())
+                    foreach (StatusEntry statusEntry in container.Repository.Index.RetrieveStatus())
                     {
-                        if(
+                        if (
                             (statusEntry.State == FileStatus.Untracked && All) ||
                             (statusEntry.State == FileStatus.Missing) ||
                             (statusEntry.State == FileStatus.Modified)
                           )
                         {
-                            String repoRelativePath = FileSystemUtil.MakeRelative(statusEntry.FilePath, repository.Info.WorkingDirectory);
+                            String repoRelativePath = FileSystemUtil.MakeRelative(statusEntry.FilePath, container.Repository.Info.WorkingDirectory);
 
                             WriteVerbose(String.Format("Adding {0}", statusEntry.FilePath));
-                            repository.Index.Stage(statusEntry.FilePath);
+                            container.Repository.Index.Stage(statusEntry.FilePath);
 
-                            WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, statusEntry.FilePath, repository.Index.RetrieveStatus(statusEntry.FilePath)));
+                            WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, statusEntry.FilePath, container.Repository.Index.RetrieveStatus(statusEntry.FilePath)));
                         }
                     }
-                }
-            }
-            finally
-            {
-                if (repository != null && shouldDispose)
-                {
-                    repository.Dispose();
                 }
             }
         }

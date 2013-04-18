@@ -14,7 +14,7 @@ using GitPowerShell.Util;
 namespace GitPowerShell.Commands
 {
     [Cmdlet(VerbsCommon.Remove, "GitIndexEntry")]
-    public class RemoveGitIndexEntryCommand : PSCmdlet, IDynamicParameters
+    public class RemoveGitIndexEntryCommand : GitCmdlet, IDynamicParameters
     {
         [Parameter(Mandatory = false, HelpMessage = "The repository to query status for."), RepositoryTransformation]
         public RepositoryParameter Repository
@@ -104,9 +104,6 @@ namespace GitPowerShell.Commands
 
         protected override void ProcessRecord()
         {
-            Repository repository = null;
-            bool shouldDispose = true;
-
             String[] removePaths = ArrayUtil.Combine(pathParameters.Path, pathParameters.LiteralPath);
 
             if (removePaths == null)
@@ -114,31 +111,12 @@ namespace GitPowerShell.Commands
                 throw new ArgumentException("You must specify paths to add using -Path or -LiteralPath");
             }
 
-            try
+            using (RepositoryParameter container = UseOrDiscoverRepository(Repository))
             {
-                RepositoryParameter repositoryParam = Repository;
-
-                if (repositoryParam == null)
-                {
-                    String repositoryPath = LibGit2Sharp.Repository.Discover(SessionState.Path.CurrentFileSystemLocation.Path);
-
-                    if (repositoryPath == null)
-                    {
-                        throw new FileNotFoundException("Could not locate git repository based on the current file system location.  Specify -Repository to indicate the repository location.");
-                    }
-
-                    repository = new Repository(repositoryPath);
-                }
-                else
-                {
-                    repository = Repository.Repository;
-                    shouldDispose = Repository.ShouldDispose;
-                }
-
                 /* Sanity check input, ensure it's in the index */
                 foreach (String path in removePaths)
                 {
-                    FileStatus state = repository.Index.RetrieveStatus(path);
+                    FileStatus state = container.Repository.Index.RetrieveStatus(path);
 
                     if (state == FileStatus.Nonexistent || state == FileStatus.Untracked)
                     {
@@ -153,19 +131,12 @@ namespace GitPowerShell.Commands
                         File.Delete(path);
                     }
 
-                    String repoRelativePath = FileSystemUtil.MakeRelative(path, repository.Info.WorkingDirectory);
+                    String repoRelativePath = FileSystemUtil.MakeRelative(path, container.Repository.Info.WorkingDirectory);
 
                     WriteVerbose(String.Format("Removing {0}", repoRelativePath));
-                    repository.Index.Unstage(path);
+                    container.Repository.Index.Unstage(path);
 
-                    WriteObject(new GitFileSystemStatusEntry(repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, repository.Index.RetrieveStatus(path)));
-                }
-            }
-            finally
-            {
-                if (repository != null && shouldDispose)
-                {
-                    repository.Dispose();
+                    WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.Index.RetrieveStatus(path)));
                 }
             }
         }

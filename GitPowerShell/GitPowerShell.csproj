@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LibGit2Sharp">
-      <HintPath>..\packages\LibGit2Sharp.0.8\lib\net35\LibGit2Sharp.dll</HintPath>
+      <HintPath>..\packages\LibGit2Sharp.0.10\lib\net35\LibGit2Sharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,9 +51,11 @@
   <ItemGroup>
     <Compile Include="Commands\AddGitIndexEntryCommand.cs" />
     <Compile Include="Commands\CommitGitRepositoryCommand.cs" />
-    <Compile Include="Commands\GetGitRepositoryCommand.cs" />
+    <Compile Include="Commands\GetGitBranchesCommand.cs" />
     <Compile Include="Commands\GetGitStatusCommand.cs" />
+    <Compile Include="Commands\GitCmdlet.cs" />
     <Compile Include="Commands\InitializeGitRepositoryCommand.cs" />
+    <Compile Include="Commands\OpenGitRepositoryCommand.cs" />
     <Compile Include="Commands\RemoveGitIndexEntryCommand.cs" />
     <Compile Include="Output\GitFileSystemStatusEntry.cs" />
     <Compile Include="Parameters\PathArrayTransformationAttribute.cs" />
@@ -86,9 +88,9 @@
     <PostBuildEvent>
 if not exist "$(TargetDir)NativeBinaries" md "$(TargetDir)NativeBinaries"
 if not exist "$(TargetDir)NativeBinaries\x86" md "$(TargetDir)NativeBinaries\x86"
-xcopy /s /y "$(SolutionDir)packages\LibGit2Sharp.0.8\NativeBinaries\x86\*.*" "$(TargetDir)NativeBinaries\x86"
+xcopy /s /y "$(SolutionDir)packages\LibGit2Sharp.0.10\NativeBinaries\x86\*.*" "$(TargetDir)NativeBinaries\x86"
 if not exist "$(TargetDir)NativeBinaries\amd64" md "$(TargetDir)NativeBinaries\amd64"
-xcopy /s /y "$(SolutionDir)packages\LibGit2Sharp.0.8\NativeBinaries\amd64\*.*" "$(TargetDir)NativeBinaries\amd64"</PostBuildEvent>
+xcopy /s /y "$(SolutionDir)packages\LibGit2Sharp.0.10\NativeBinaries\amd64\*.*" "$(TargetDir)NativeBinaries\amd64"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

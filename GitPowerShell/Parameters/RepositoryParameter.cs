@@ -9,7 +9,7 @@ using LibGit2Sharp;
 
 namespace GitPowerShell.Parameters
 {
-    public class RepositoryParameter
+    public class RepositoryParameter : IDisposable
     {
         public Repository Repository
         {
@@ -27,6 +27,14 @@ namespace GitPowerShell.Parameters
         {
             Repository = repository;
             ShouldDispose = shouldDispose;
+        }
+
+        public void Dispose()
+        {
+            if (ShouldDispose)
+            {
+                Repository.Dispose();
+            }
         }
     }
 }
