@@ -56,7 +56,7 @@ namespace GitPowerShell.Commands
         {
             String[] addPaths = ArrayUtil.Combine(Path, LiteralPath);
 
-            if (addPaths == null && ! All && ! Update)
+            if (addPaths == null && !All && !Update)
             {
                 throw new ArgumentException("You must specify paths to add using -Path or -LiteralPath, or use the -All or -Update parameter");
             }
