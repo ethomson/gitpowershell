@@ -74,14 +74,14 @@ namespace GitPowerShell.Commands
                         String repoRelativePath = FileSystemUtil.MakeRelative(path, container.Repository.Info.WorkingDirectory);
 
                         WriteVerbose(String.Format("Adding {0}", repoRelativePath));
-                        container.Repository.Index.Stage(path);
+                        container.Repository.Stage(path);
 
-                        WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.Index.RetrieveStatus(path)));
+                        WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.RetrieveStatus(path)));
                     }
                 }
                 else
                 {
-                    foreach (StatusEntry statusEntry in container.Repository.Index.RetrieveStatus())
+                    foreach (StatusEntry statusEntry in container.Repository.RetrieveStatus())
                     {
                         if (
                             (statusEntry.State == FileStatus.Untracked && All) ||
@@ -92,9 +92,9 @@ namespace GitPowerShell.Commands
                             String repoRelativePath = FileSystemUtil.MakeRelative(statusEntry.FilePath, container.Repository.Info.WorkingDirectory);
 
                             WriteVerbose(String.Format("Adding {0}", statusEntry.FilePath));
-                            container.Repository.Index.Stage(statusEntry.FilePath);
+                            container.Repository.Stage(statusEntry.FilePath);
 
-                            WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, statusEntry.FilePath, container.Repository.Index.RetrieveStatus(statusEntry.FilePath)));
+                            WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, statusEntry.FilePath, container.Repository.RetrieveStatus(statusEntry.FilePath)));
                         }
                     }
                 }

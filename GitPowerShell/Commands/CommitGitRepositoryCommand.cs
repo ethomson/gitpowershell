@@ -88,7 +88,7 @@ namespace GitPowerShell.Commands
 
                 committer = GetDefaultSignature(container.Repository, commitTime);
 
-                Commit commit = container.Repository.Commit(Message, author, committer, Amend);
+                Commit commit = container.Repository.Commit(Message, author, committer, new CommitOptions { AmendPreviousCommit = Amend });
 
                 if (PassThru)
                 {

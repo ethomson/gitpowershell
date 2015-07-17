@@ -48,13 +48,13 @@ namespace GitPowerShell.Commands
                 {
                     foreach (String path in paths)
                     {
-                        FileStatus state = container.Repository.Index.RetrieveStatus(path);
+                        FileStatus state = container.Repository.RetrieveStatus(path);
                         WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, state));
                     }
                 }
                 else
                 {
-                    RepositoryStatus status = container.Repository.Index.RetrieveStatus();
+                    RepositoryStatus status = container.Repository.RetrieveStatus();
 
                     foreach (StatusEntry entry in status)
                     {

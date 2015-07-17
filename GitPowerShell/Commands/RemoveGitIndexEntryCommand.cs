@@ -116,7 +116,7 @@ namespace GitPowerShell.Commands
                 /* Sanity check input, ensure it's in the index */
                 foreach (String path in removePaths)
                 {
-                    FileStatus state = container.Repository.Index.RetrieveStatus(path);
+                    FileStatus state = container.Repository.RetrieveStatus(path);
 
                     if (state == FileStatus.Nonexistent || state == FileStatus.Untracked)
                     {
@@ -134,9 +134,9 @@ namespace GitPowerShell.Commands
                     String repoRelativePath = FileSystemUtil.MakeRelative(path, container.Repository.Info.WorkingDirectory);
 
                     WriteVerbose(String.Format("Removing {0}", repoRelativePath));
-                    container.Repository.Index.Unstage(path);
+                    container.Repository.Unstage(path);
 
-                    WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.Index.RetrieveStatus(path)));
+                    WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.RetrieveStatus(path)));
                 }
             }
         }
