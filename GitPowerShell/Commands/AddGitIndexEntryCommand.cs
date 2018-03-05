@@ -74,7 +74,7 @@ namespace GitPowerShell.Commands
                         String repoRelativePath = FileSystemUtil.MakeRelative(path, container.Repository.Info.WorkingDirectory);
 
                         WriteVerbose(String.Format("Adding {0}", repoRelativePath));
-                        container.Repository.Stage(path);
+                        LibGit2Sharp.Commands.Stage(container.Repository, path);
 
                         WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.RetrieveStatus(path)));
                     }
@@ -84,15 +84,15 @@ namespace GitPowerShell.Commands
                     foreach (StatusEntry statusEntry in container.Repository.RetrieveStatus())
                     {
                         if (
-                            (statusEntry.State == FileStatus.Untracked && All) ||
-                            (statusEntry.State == FileStatus.Missing) ||
-                            (statusEntry.State == FileStatus.Modified)
+                            (statusEntry.State == FileStatus.NewInWorkdir && All) ||
+                            (statusEntry.State == FileStatus.DeletedFromWorkdir) ||
+                            (statusEntry.State == FileStatus.ModifiedInWorkdir)
                           )
                         {
                             String repoRelativePath = FileSystemUtil.MakeRelative(statusEntry.FilePath, container.Repository.Info.WorkingDirectory);
 
                             WriteVerbose(String.Format("Adding {0}", statusEntry.FilePath));
-                            container.Repository.Stage(statusEntry.FilePath);
+                            LibGit2Sharp.Commands.Stage(container.Repository, statusEntry.FilePath);
 
                             WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, statusEntry.FilePath, container.Repository.RetrieveStatus(statusEntry.FilePath)));
                         }

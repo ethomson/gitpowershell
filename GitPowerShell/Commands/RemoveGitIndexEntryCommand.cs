@@ -118,7 +118,7 @@ namespace GitPowerShell.Commands
                 {
                     FileStatus state = container.Repository.RetrieveStatus(path);
 
-                    if (state == FileStatus.Nonexistent || state == FileStatus.Untracked)
+                    if (state == FileStatus.Nonexistent || state == FileStatus.NewInWorkdir)
                     {
                         throw new ArgumentException(String.Format("The item {0} is not tracked", path));
                     }
@@ -134,7 +134,7 @@ namespace GitPowerShell.Commands
                     String repoRelativePath = FileSystemUtil.MakeRelative(path, container.Repository.Info.WorkingDirectory);
 
                     WriteVerbose(String.Format("Removing {0}", repoRelativePath));
-                    container.Repository.Unstage(path);
+                    LibGit2Sharp.Commands.Unstage(container.Repository, path);
 
                     WriteObject(new GitFileSystemStatusEntry(container.Repository.Info.WorkingDirectory, SessionState.Path.CurrentFileSystemLocation.Path, path, container.Repository.RetrieveStatus(path)));
                 }
